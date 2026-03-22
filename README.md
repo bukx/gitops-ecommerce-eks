@@ -1,5 +1,7 @@
 # 🛒 Multi-Region E-Commerce Platform with GitOps
 
+![Validate](https://github.com/bukx/project-1-gitops-ecommerce/actions/workflows/validate.yml/badge.svg)
+
 ![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=flat&logo=terraform&logoColor=white)
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=flat&logo=kubernetes&logoColor=white)
 ![AWS](https://img.shields.io/badge/AWS-FF9900?style=flat&logo=amazonaws&logoColor=white)

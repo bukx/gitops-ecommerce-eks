@@ -1,0 +1,49 @@
+name: Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  terraform-validate:
+    name: Terraform Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - name: Validate Terraform modules
+        run: |
+          for dir in terraform/modules/*/; do
+            echo "=== Validating $dir ==="
+            cd "$dir"
+            terraform init -backend=false
+            terraform validate
+            cd "$GITHUB_WORKSPACE"
+          done
+
+  kubernetes-lint:
+    name: Kubernetes Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install kubeval
+        run: |
+          wget -q https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz
+          tar xf kubeval-linux-amd64.tar.gz
+          sudo mv kubeval /usr/local/bin/
+      - name: Lint K8s manifests
+        run: |
+          find k8s/ -name '*.yaml' -exec kubeval --ignore-missing-schemas {} +
+
+  python-lint:
+    name: Python Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install flake8
+      - run: flake8 services/ --max-line-length=120 --count --show-source --statistics
