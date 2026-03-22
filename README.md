@@ -1,9 +1,49 @@
-# Project 1: Multi-Region E-Commerce Platform with GitOps Deployment
+# 🛒 Multi-Region E-Commerce Platform with GitOps
 
-## Architecture Overview
-Multi-region microservices e-commerce app deployed across 2 AWS regions on EKS with GitOps (ArgoCD), Istio service mesh for canary releases, and Terraform IaC.
+![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=flat&logo=terraform&logoColor=white)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=flat&logo=kubernetes&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-FF9900?style=flat&logo=amazonaws&logoColor=white)
+![ArgoCD](https://img.shields.io/badge/ArgoCD-EF7B4D?style=flat&logo=argo&logoColor=white)
+![Istio](https://img.shields.io/badge/Istio-466BB0?style=flat&logo=istio&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
 
-## Tools Demonstrated
+Production-grade multi-region microservices e-commerce platform deployed across **2 AWS regions** on EKS with **GitOps (ArgoCD)**, **Istio service mesh** for canary releases, and **Terraform IaC**.
+
+---
+
+## 🏗 Architecture
+
+```
+                         ┌─────────────┐
+                         │  Route 53   │
+                         │  (Failover) │
+                         └──────┬──────┘
+                    ┌───────────┴───────────┐
+              ┌─────▼─────┐           ┌─────▼─────┐
+              │ us-east-1 │           │ us-west-2 │
+              │    EKS    │           │    EKS    │
+              └─────┬─────┘           └─────┬─────┘
+                    │                       │
+         ┌──────────┼──────────┐            │
+         │          │          │            │
+    ┌────▼───┐ ┌───▼────┐ ┌───▼─────┐     ...
+    │Catalog │ │  Cart  │ │Checkout │
+    │Service │ │Service │ │Service  │
+    └────┬───┘ └───┬────┘ └───┬─────┘
+         │         │          │
+    ┌────▼─────────▼──────────▼────┐
+    │   Istio Service Mesh         │
+    │   (Canary / Traffic Split)   │
+    └──────────────────────────────┘
+         │                    │
+    ┌────▼────┐         ┌────▼────┐
+    │ RDS     │         │ Redis   │
+    │ Postgres│         │ElastiCa.│
+    └─────────┘         └─────────┘
+```
+
+## 🔧 Tech Stack
+
 | Tool | Usage |
 |------|-------|
 | **Terraform** | Provision VPCs, EKS, RDS, ElastiCache, ECR across 2 regions |
@@ -17,7 +57,8 @@ Multi-region microservices e-commerce app deployed across 2 AWS regions on EKS w
 | **Redis (ElastiCache)** | Session caching and cart state |
 | **Route 53** | DNS-based failover between regions |
 
-## Quick Start
+## 🚀 Quick Start
+
 ```bash
 # 1. Provision infrastructure
 cd terraform/environments/us-east-1 && terraform init && terraform apply
@@ -33,8 +74,25 @@ kubectl apply -f k8s/base/catalog/argocd-app.yaml
 git push origin main
 ```
 
-## Success Metrics
-- Environment provisioning: <20 minutes via Terraform
-- Deployment frequency: automated on every merge to main
-- Zero-downtime releases via Istio canary (90/10 → 50/50 → 100)
-- Cross-region failover: <60 seconds via Route 53 health checks
+## 📈 Key Outcomes
+
+| Metric | Result |
+|--------|--------|
+| Environment provisioning | < 20 minutes via Terraform |
+| Deployment frequency | Automated on every merge to main |
+| Zero-downtime releases | Istio canary: 90/10 → 50/50 → 100 |
+| Cross-region failover | < 60 seconds via Route 53 health checks |
+
+## 📁 Project Structure
+
+```
+├── .github/workflows/    # CI pipeline (GitHub Actions)
+├── helm/                 # ArgoCD + Istio Helm charts
+├── k8s/base/             # Kubernetes manifests (Kustomize)
+├── services/             # Microservice source code + Dockerfiles
+└── terraform/            # IaC modules (VPC, EKS, RDS)
+```
+
+## 📜 License
+
+This project is for portfolio/demonstration purposes.
