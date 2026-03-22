@@ -1,0 +1,50 @@
+name: CI — Build, Test, Push to ECR
+on:
+  push: { branches: [main], paths: ['services/**'] }
+  pull_request: { branches: [main] }
+env:
+  AWS_REGION: us-east-1
+  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [catalog-service, cart-service, checkout-service]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.11' }
+      - run: pip install -r requirements.txt pytest pytest-cov
+        working-directory: services/${{ matrix.service }}
+      - run: pytest tests/ --cov=src -v
+        working-directory: services/${{ matrix.service }}
+
+  build-and-push:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [catalog-service, cart-service, checkout-service]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with: { role-to-assume: '${{ secrets.AWS_DEPLOY_ROLE_ARN }}', aws-region: us-east-1 }
+      - uses: aws-actions/amazon-ecr-login@v2
+      - name: Build and push
+        working-directory: services/${{ matrix.service }}
+        run: |
+          TAG="${{ github.sha }}"
+          docker build -t ${ECR_REGISTRY}/${{ matrix.service }}:${TAG} .
+          docker push ${ECR_REGISTRY}/${{ matrix.service }}:${TAG}
+      - name: Update manifests for ArgoCD
+        run: |
+          cd k8s/overlays/us-east-1
+          kustomize edit set image ${{ matrix.service }}=${ECR_REGISTRY}/${{ matrix.service }}:${{ github.sha }}
+          git config user.name "github-actions[bot]"
+          git add . && git commit -m "chore: update ${{ matrix.service }} to ${{ github.sha }}" && git push

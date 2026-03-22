@@ -1,0 +1,30 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: catalog-service
+  namespace: ecommerce
+spec:
+  hosts: [catalog-service]
+  http:
+    - match:
+        - headers: { x-canary: { exact: "true" } }
+      route:
+        - destination: { host: catalog-service, subset: canary }
+    - route:
+        - destination: { host: catalog-service, subset: stable }
+          weight: 90
+        - destination: { host: catalog-service, subset: canary }
+          weight: 10
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: catalog-service
+  namespace: ecommerce
+spec:
+  host: catalog-service
+  subsets:
+    - name: stable
+      labels: { version: stable }
+    - name: canary
+      labels: { version: canary }
