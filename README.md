@@ -15,34 +15,7 @@ Production-grade multi-region microservices e-commerce platform deployed across 
 
 ## 🏗 Architecture
 
-```
-                         ┌─────────────┐
-                         │  Route 53   │
-                         │  (Failover) │
-                         └──────┬──────┘
-                    ┌───────────┴───────────┐
-              ┌─────▼─────┐           ┌─────▼─────┐
-              │ us-east-1 │           │ us-west-2 │
-              │    EKS    │           │    EKS    │
-              └─────┬─────┘           └─────┬─────┘
-                    │                       │
-         ┌──────────┼──────────┐            │
-         │          │          │            │
-    ┌────▼───┐ ┌───▼────┐ ┌───▼─────┐     ...
-    │Catalog │ │  Cart  │ │Checkout │
-    │Service │ │Service │ │Service  │
-    └────┬───┘ └───┬────┘ └───┬─────┘
-         │         │          │
-    ┌────▼─────────▼──────────▼────┐
-    │   Istio Service Mesh         │
-    │   (Canary / Traffic Split)   │
-    └──────────────────────────────┘
-         │                    │
-    ┌────▼────┐         ┌────▼────┐
-    │ RDS     │         │ Redis   │
-    │ Postgres│         │ElastiCa.│
-    └─────────┘         └─────────┘
-```
+![Architecture Diagram](docs/architecture.png)
 
 ## 🔧 Tech Stack
 
